@@ -267,6 +267,22 @@ resource "aws_route53_record" "www" {
   }
 }
 
+# SNS Topic
+resource "aws_sns_topic" "app_notifications" {
+  name = "app-notifications"
+
+  tags = {
+    Name = "app-notifications"
+  }
+}
+
+# SNS Subscription (e.g., email)
+resource "aws_sns_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.app_notifications.arn
+  protocol  = "email"
+  endpoint  = "example@example.com" # Replace with your email address
+}
+
 # CloudWatch Monitoring
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm_high" {
   alarm_name          = "HighCPUUtilization"
