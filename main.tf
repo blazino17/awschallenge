@@ -27,10 +27,10 @@ resource "aws_internet_gateway" "igw" {
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  count = length(data.aws_availability_zones.available.names)
-  vpc_id = aws_vpc.main.id
-  cidr_block = "10.0.${count.index + 1}.0/24"
-  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+  count                  = length(data.aws_availability_zones.available.names)
+  vpc_id                 = aws_vpc.main.id
+  cidr_block             = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)
+  availability_zone      = element(data.aws_availability_zones.available.names, count.index)
   map_public_ip_on_launch = true
 
   tags = {
@@ -40,10 +40,10 @@ resource "aws_subnet" "public" {
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  count = length(data.aws_availability_zones.available.names)
-  vpc_id = aws_vpc.main.id
-  cidr_block = "10.0.${count.index + 101}.0/24"
-  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+  count                  = length(data.aws_availability_zones.available.names)
+  vpc_id                 = aws_vpc.main.id
+  cidr_block             = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index + 100)
+  availability_zone      = element(data.aws_availability_zones.available.names, count.index)
 
   tags = {
     Name = "private-subnet-${count.index + 1}"
@@ -51,9 +51,7 @@ resource "aws_subnet" "private" {
 }
 
 # NAT Gateway
-resource "aws_eip" "nat" {
-  vpc = true
-}
+resource "aws_eip" "nat" {}
 
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
@@ -79,8 +77,8 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count = length(data.aws_availability_zones.available.names)
-  subnet_id = element(aws_subnet.public.*.id, count.index)
+  count          = length(data.aws_availability_zones.available.names)
+  subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
@@ -98,8 +96,8 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count = length(data.aws_availability_zones.available.names)
-  subnet_id = element(aws_subnet.private.*.id, count.index)
+  count          = length(data.aws_availability_zones.available.names)
+  subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }
 
@@ -176,12 +174,12 @@ resource "aws_lb_listener" "app_listener" {
   }
 }
 
-# Auto Scaling Group and Launch Configuration
-resource "aws_launch_configuration" "app" {
-  name          = "app-launch-config"
+# Auto Scaling Group and Launch Template
+resource "aws_launch_template" "app_template" {
+  name          = "app-launch-template"
   image_id      = "ami-0c55b159cbfafe1f0" # Example Amazon Linux 2 AMI
   instance_type = "t2.micro"
-  security_groups = [aws_security_group.app_sg.id]
+  security_group_ids = [aws_security_group.app_sg.id]
 
   user_data = <<-EOF
               #!/bin/bash
@@ -191,28 +189,23 @@ resource "aws_launch_configuration" "app" {
               systemctl enable httpd
               echo "Hello, World" > /var/www/html/index.html
             EOF
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_autoscaling_group" "app_asg" {
-  launch_configuration = aws_launch_configuration.app.id
-  min_size             = 1
-  max_size             = 3
   desired_capacity     = 2
+  max_size             = 3
+  min_size             = 1
   vpc_zone_identifier  = aws_subnet.private[*].id
   target_group_arns    = [aws_lb_target_group.app_tg.arn]
+  launch_template {
+    id      = aws_launch_template.app_template.id
+    version = "$Latest"
+  }
 
   tag {
     key                 = "Name"
     value               = "app-instance"
     propagate_at_launch = true
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
@@ -295,3 +288,69 @@ resource "aws_autoscaling_policy" "scale_out" {
   autoscaling_group_name = aws_autoscaling_group.app_asg.name
 }
 
+# AWS IAM Roles and Policies
+resource "aws_iam_role" "app_role" {
+  name = "app-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "app_policy" {
+  name        = "app-policy"
+  description = "My App Policy"
+  policy      = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Effect = "Allow"
+        Resource = [
+          aws_s3_bucket.static_assets.arn,
+          "${aws_s3_bucket.static_assets.arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "app_policy_attachment" {
+  role       = aws_iam_role.app_role.name
+  policy_arn = aws_iam_policy.app_policy.arn
+}
+
+# Backup Plan
+resource "aws_backup_vault" "app_vault" {
+  name = "app-backup-vault"
+
+  tags = {
+    Name = "app-backup-vault"
+  }
+}
+
+resource "aws_backup_plan" "app_backup" {
+  name = "app-backup-plan"
+
+  rule {
+    rule_name         = "daily-backup"
+    schedule          = "cron(0 12 * * ? *)"
+    target_vault_name = aws_backup_vault.app_vault.name
+
+    lifecycle {
+      delete_after = "30d"
+    }
+  }
+}
