@@ -269,23 +269,6 @@ resource "aws_s3_bucket_policy" "static_content_policy" {
 EOF
 }
 
-# Route 53 Domain and Record
-resource "aws_route53_zone" "main" {
-  name = "mydomain.com"
-}
-
-resource "aws_route53_record" "www" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "www"
-  type    = "A"
-
-  alias {
-    name                   = aws_lb.app_lb.dns_name
-    zone_id                = aws_lb.app_lb.zone_id
-    evaluate_target_health = true
-  }
-}
-
 # SNS Topic
 resource "aws_sns_topic" "app_notifications" {
   name = "app-notifications"
