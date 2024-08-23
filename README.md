@@ -2,7 +2,6 @@
 Terraform script for automating  an aws scalable webapp
 ---
 
-https://github.com/user-attachments/assets/c25e271b-9f58-4afd-9025-adff2e5b554e
 
 ## Infrastructure Overview
 
