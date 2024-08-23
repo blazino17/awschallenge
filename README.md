@@ -22,7 +22,7 @@ This project provisions a highly available, scalable, and secure web application
   An Amazon RDS instance is used for persistent storage, offering automated backups and multi-AZ deployment for fault tolerance and data recovery.
 
 - **S3 Bucket:**
-  An S3 bucket stores static assets like images and front-end files, leveraging the scalability and cost-effectiveness of Amazon S3.My S3 bucket will be connected to Route 53 for domain mapping, allowing direct access to static assets using a custom domain or subdomain.
+  An S3 bucket stores static assets like images and front-end files, leveraging the scalability and cost-effectiveness of Amazon S3.The S3 bucket connects to your application stack to serve static content, improving performance by offloading these assets from your compute instances
 
 - **IAM Roles and Policies:**
   The architecture enforces security best practices by using IAM roles with minimal permissions, ensuring that each service only has access to the resources it needs. An IAM policy is attached to the role, granting the necessary permissions to interact with S3 or other AWS services.
