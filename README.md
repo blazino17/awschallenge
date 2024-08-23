@@ -15,7 +15,7 @@ This project provisions a highly available, scalable, and secure web application
   Public and private subnets are associated with separate route tables. The public route table directs internet-bound traffic through the Internet Gateway, while the private route table routes external traffic through the NAT Gateway.
 
 - **Load Balancer and Auto Scaling Group:**
-  An Application Load Balancer (ALB) handles incoming traffic, distributing it across EC2 instances in the Auto Scaling Group (ASG). The ASG ensures the application scales based on traffic demand, maintaining high availability by running across multiple availability zones.
+  An Application Load Balancer (ALB) handles incoming traffic, distributing it across EC2 instances in the Auto Scaling Group (ASG). The ASG ensures the application scales based on traffic demand, maintaining high availability by running across multiple availability zones.The Auto Scaling Group manages the lifecycle of EC2 instances, automatically scaling the number of instances up or down based on the defined policies and CloudWatch alarms. The ASG is connected to the load balancer to distribute traffic across the EC2 instances. When the ASG scales out (adds more instances) or scales in (removes instances), the load balancer automatically registers or deregisters these instances.The ASG is triggered by CloudWatch alarms that monitor metrics like CPU utilization. For example, when the CPU usage goes above a certain threshold, a CloudWatch alarm triggers the ASG to launch more instances
 
 - **RDS Database:**
   An Amazon RDS instance is used for persistent storage, offering automated backups and multi-AZ deployment for fault tolerance and data recovery.
