@@ -3,6 +3,7 @@ Terraform script for automating  an aws scalable webapp
 ---
 ![Architecture Diagram](https://github.com/user-attachments/assets/c25e271b-9f58-4afd-9025-adff2e5b554e)
 
+
 ## Infrastructure Overview
 
 This project provisions a highly available, scalable, and secure web application infrastructure on AWS using Terraform. The architecture supports efficient deployment and follows DevOps best practices, focusing on automation, observability, and fault tolerance.
@@ -90,6 +91,16 @@ Set up cost alerts in AWS to notify you when spending exceeds predefined thresho
 aws_sns_topic: Defines an SNS topic where messages can be published.
 aws_sns_subscription: Subscribes an endpoint (e.g., email) to the SNS topic.
 aws_cloudwatch_metric_alarm: Uses SNS to send notifications when the alarm state is triggere
+
+Then to apply all this changes;Run the following command.
+
+Terraform init
+
+Terraform plan
+
+terraform apply 
+
+
 
 ### Conclusion
 
