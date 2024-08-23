@@ -90,6 +90,16 @@ aws_sns_topic: Defines an SNS topic where messages can be published.
 aws_sns_subscription: Subscribes an endpoint (e.g., email) to the SNS topic.
 aws_cloudwatch_metric_alarm: Uses SNS to send notifications when the alarm state is triggere
 
+Then to apply all this changes;Run the following command.
+
+Terraform init
+
+Terraform plan
+
+terraform apply 
+
+
+
 ### Conclusion
 
 This infrastructure balances scalability, cost efficiency, efficiency, and best practices by leveraging AWS-managed services and Terraform automation. It provides a robust foundation for running web applications that can handle production-level traffic while ensuring operational simplicity and cost efficiency.
