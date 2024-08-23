@@ -2,6 +2,8 @@
 Terraform script for automating  an aws scalable webapp
 ---
 
+https://github.com/user-attachments/assets/c25e271b-9f58-4afd-9025-adff2e5b554e
+
 ## Infrastructure Overview
 
 This project provisions a highly available, scalable, and secure web application infrastructure on AWS using Terraform. The architecture supports efficient deployment and follows DevOps best practices, focusing on automation, observability, and fault tolerance.
