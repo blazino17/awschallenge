@@ -240,14 +240,33 @@ resource "aws_db_subnet_group" "main" {
   }
 }
 
-# S3 Bucket (for static assets)
-resource "aws_s3_bucket" "static_assets" {
-  bucket = "my-static-assets"
+resource "aws_s3_bucket" "static_content" {
+  bucket = "your-bucket-name"
   acl    = "public-read"
 
-  tags = {
-    Name = "static-assets"
+  website {
+    index_document = "index.html"
+    error_document = "error.html"
   }
+}
+
+resource "aws_s3_bucket_policy" "static_content_policy" {
+  bucket = aws_s3_bucket.static_content.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "${aws_s3_bucket.static_content.arn}/*"
+    }
+  ]
+}
+EOF
 }
 
 # Route 53 Domain and Record
