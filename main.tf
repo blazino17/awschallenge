@@ -280,7 +280,7 @@ resource "aws_sns_topic" "app_notifications" {
 resource "aws_sns_subscription" "email_subscription" {
   topic_arn = aws_sns_topic.app_notifications.arn
   protocol  = "email"
-  endpoint  = "example@example.com" # Replace with your email address
+  endpoint  = "obidinnublaise@gmail.com" 
 }
 
 # CloudWatch Monitoring
